@@ -55,16 +55,31 @@ class GenerateRequest(BaseModel):
             }
         }
 
+@api_app.post("/unload")
+async def api_unload():
+    """Modeli bellekten manuel olarak boşaltır."""
+    model_cache.clear()
+    return {"status": "ok", "message": "Model bellekten boşaltıldı."}
+
 @api_app.get("/health")
 async def api_health():
     """Sistem sağlık durumunu ve modelin yüklü olup olmadığını döndürür."""
     is_loaded = model_cache.has("tts")
     
-    return {
+    status = {
         "status": "ok",
         "device": state.device,
         "model_loaded": is_loaded
     }
+    
+    # Cache timeout bilgisini ekle
+    cache_status = model_cache.get_status().get("tts", {})
+    if cache_status:
+        status["idle_seconds"] = cache_status.get("idle_seconds")
+        status["timeout_seconds"] = cache_status.get("timeout_seconds")
+        status["remaining_seconds"] = cache_status.get("remaining_seconds")
+        
+    return status
 
 
 @api_app.get("/languages")

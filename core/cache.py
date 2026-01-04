@@ -19,14 +19,25 @@ class ModelCache:
     _instance = None
     _lock = threading.Lock()
     
+
+    
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._models = {}
             cls._instance._last_access = {}
-            cls._instance._timeout_seconds = int(os.getenv("MODEL_IDLE_TIMEOUT", 600))  # 10 dk default
+            
+            # Fix: Check both variable names, prioritize IDLE_TIMEOUT as per .env.example
+            timeout = os.getenv("IDLE_TIMEOUT", os.getenv("MODEL_IDLE_TIMEOUT", "600"))
+            try:
+                cls._instance._timeout_seconds = int(timeout)
+            except ValueError:
+                cls._instance._timeout_seconds = 600
+                
             cls._instance._cleanup_thread = None
             cls._instance._running = False
+            # Check debug mode
+            cls._instance._debug = os.getenv("LOG_TYPE", "console") == "console"
         return cls._instance
     
     def get(self, key: str) -> Any:
@@ -62,7 +73,26 @@ class ModelCache:
             # GPU belleği temizle
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-            gc.collect()
+                torch.cuda.ipc_collect()
+            
+            # Force GC multiple times for generation remnants
+            for _ in range(3):
+                gc.collect() 
+                
+            if getattr(self, '_debug', False):
+                print(f"[ModelCache] Memory cleared. Models in cache: {len(self._models)}")
+            
+            # Force OS to reclaim memory (Critical for Docker/Linux)
+            # Python's GC frees objects but libc might not yield memory to OS immediately
+            try:
+                import ctypes
+                libc = ctypes.CDLL("libc.so.6")
+                libc.malloc_trim(0)
+                if getattr(self, '_debug', False):
+                    print("[ModelCache] malloc_trim(0) executed.")
+            except Exception as e:
+                # Might fail on Windows, but that's fine as this is a specific Docker/Linux optimization
+                pass
     
     def _start_cleanup_thread(self) -> None:
         """Cleanup thread'i başlat (eğer çalışmıyorsa)"""

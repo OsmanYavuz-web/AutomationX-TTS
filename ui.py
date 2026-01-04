@@ -240,12 +240,22 @@ def create_ui():
                 exaggeration = gr.Slider(label="Duygu Yogunlugu", minimum=0.0, maximum=2.0, value=0.5, step=0.1)
                 cfg_weight = gr.Slider(label="Metin Sadakati", minimum=0.0, maximum=1.0, value=0.5, step=0.1)
                 seed = gr.Number(label="Seed (-1 = rastgele)", value=-1, precision=0)
-                clear_btn = gr.Button("Temizle", elem_classes=["clear-btn"])
+                
+                with gr.Row():
+                    unload_btn = gr.Button("🧹 Modeli Boşalt", size="sm", variant="secondary")
+                    clear_btn = gr.Button("Temizle", elem_classes=["clear-btn"], size="sm")
 
         # Events
         text_input.change(lambda t: f"📝 {len(t)} karakter | {len(t.split())} kelime", inputs=[text_input], outputs=[char_count])
         generate_btn.click(generate_speech, inputs=[text_input, language, ref_audio, exaggeration, cfg_weight, seed], outputs=[audio_output]).then(refresh_history, outputs=[history_dropdown])
         clear_btn.click(clear_all, outputs=[text_input, audio_output])
+        
+        def unload_model():
+            from core.cache import model_cache
+            model_cache.clear()
+            return gr.Info("Model bellekten temizlendi!")
+            
+        unload_btn.click(unload_model, outputs=None)
         
         # History events
         refresh_btn.click(refresh_history, outputs=[history_dropdown])
