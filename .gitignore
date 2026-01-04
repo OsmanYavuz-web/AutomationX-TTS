@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Output files
+*.wav
+*.mp3
+*.flac
+output_*.wav
+
+# Logs
+logs/
+
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model cache (HuggingFace)
+.cache/
+models/
+
+# Config overrides (optional)
+config.local.yaml
+
+
+# Secrets
+.env

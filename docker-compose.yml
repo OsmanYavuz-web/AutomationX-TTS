@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  automationx-tts:
+    build: .
+    container_name: automationx-tts
+    ports:
+      - "7777:7777"
+    volumes:
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+      - ./.env:/app/.env
+    environment:
+      - PORT=7777
+      # Override LOG_TYPE to console for Docker logs command
+      - LOG_TYPE=console
+    restart: unless-stopped
+    # Uncomment for GPU support (requires nvidia-docker)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

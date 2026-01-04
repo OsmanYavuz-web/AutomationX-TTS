@@ -1,0 +1,10 @@
+chatterbox-tts
+gradio>=4.0
+torch
+torchaudio
+python-dotenv
+fastapi
+uvicorn[standard]
+python-multipart
+
+

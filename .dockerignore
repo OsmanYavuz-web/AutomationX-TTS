@@ -1,0 +1,8 @@
+__pycache__
+venv
+.env
+.git
+.vscode
+outputs
+logs
+temp_uploads
