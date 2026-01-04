@@ -34,7 +34,14 @@ class AppState:
         
         # Config - General
         self.port = int(os.getenv("PORT", 7860))
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # Device detection: CUDA (NVIDIA) > MPS (Apple Silicon) > CPU
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
         
         # Config - Audio Processing (varsayılanlar .env ile uyumlu)
         self.audio_config = {
